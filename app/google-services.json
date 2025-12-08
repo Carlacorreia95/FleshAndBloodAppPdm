@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "873637202516",
+    "project_id": "fleshandbloodapppdm",
+    "storage_bucket": "fleshandbloodapppdm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873637202516:android:6e500d2d8fc36c50dc7bc1",
+        "android_client_info": {
+          "package_name": "com.example.fleshandbloodapppdm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5BR-MSFZENh82xJAqZNB6Z5Nj9WIIbuk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
