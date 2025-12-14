@@ -1,6 +1,5 @@
 package com.example.fleshandbloodapppdm.ui.theme.theme.deck
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,19 +13,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fleshandbloodapppdm.models.Deck
 import com.example.fleshandbloodapppdm.ui.theme.theme.theme.FleshAndBloodAppPdmTheme
+import androidx.compose.foundation.combinedClickable
 
 @Composable
 fun DeckViewCell(
     modifier: Modifier = Modifier,
     deck: Deck,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
-    Card ( modifier = modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .clickable{
-            onClick()
-        }){
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
+    ) {
         Row(
             modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -48,7 +52,8 @@ fun DeckViewCellPreview() {
             deck = Deck(
                 name = "Deck 1",
             ),
-            onClick = {}
+            onClick = {},
+            onLongClick = {}
         )
     }
 }

@@ -8,7 +8,6 @@ import com.example.fleshandbloodapppdm.repositories.DeckRepository
 import com.example.fleshandbloodapppdm.repositories.ResultWrapper
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -29,12 +28,11 @@ class DecksViewModel @Inject constructor(
     var uiState = mutableStateOf(DecksState())
         private set
 
-    val db = Firebase.firestore
     fun fetchDecks() {
         deckRepository.fetchDecks().onEach {result ->
             when(result){
                 is ResultWrapper.Success -> {
-                    uiState.value = uiState.value.copy(
+                       uiState.value = uiState.value.copy(
                         decks = result.data?: emptyList(),
                         error = null,
                         isLoading = false
@@ -57,15 +55,16 @@ class DecksViewModel @Inject constructor(
 
     }
 
-    fun addDeck(){
+    fun addDeck(name: String) {
+        val uid = Firebase.auth.currentUser?.uid ?: return
 
-        val uid = Firebase.auth.currentUser?.uid!!
-        val deck = Deck(name = "New Deck ${
-            uiState.value.decks.size + 1
-        }",owners = listOf(uid))
+        val deck = Deck(
+            name = name.trim(),
+            owners = listOf(uid)
+        )
 
-        deckRepository.addDeck(deck).onEach { result->
-            when(result){
+        deckRepository.addDeck(deck).onEach { result ->
+            when (result) {
                 is ResultWrapper.Success -> {
                     uiState.value = uiState.value.copy(
                         error = null,
@@ -73,9 +72,7 @@ class DecksViewModel @Inject constructor(
                     )
                 }
                 is ResultWrapper.Loading -> {
-                    uiState.value = uiState.value.copy(
-                        isLoading = true
-                    )
+                    uiState.value = uiState.value.copy(isLoading = true)
                 }
                 is ResultWrapper.Error -> {
                     uiState.value = uiState.value.copy(
@@ -85,9 +82,61 @@ class DecksViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
-
-
     }
+
+    fun renameDeck(deck: Deck, newName: String) {
+        val docId = deck.docId ?: return
+
+        deckRepository.updateDeckName(docId, newName).onEach { result ->
+            when (result) {
+                is ResultWrapper.Success -> {
+                    uiState.value = uiState.value.copy(
+                        decks = uiState.value.decks.map {
+                            if (it.docId == docId) it.copyWithName(newName) else it
+                        },
+                        error = null,
+                        isLoading = false
+                    )
+                }
+                is ResultWrapper.Loading -> {
+                    uiState.value = uiState.value.copy(isLoading = true)
+                }
+                is ResultWrapper.Error -> {
+                    uiState.value = uiState.value.copy(
+                        error = result.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+
+    fun deleteDeck(deck: Deck) {
+        val docId = deck.docId ?: return
+
+        deckRepository.deleteDeck(docId).onEach { result ->
+            when (result) {
+                is ResultWrapper.Success -> {
+                    uiState.value = uiState.value.copy(
+                        decks = uiState.value.decks.filterNot { it.docId == docId },
+                        error = null,
+                        isLoading = false
+                    )
+                }
+                is ResultWrapper.Loading -> {
+                    uiState.value = uiState.value.copy(isLoading = true)
+                }
+                is ResultWrapper.Error -> {
+                    uiState.value = uiState.value.copy(
+                        error = result.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
 
 
 }

@@ -3,15 +3,13 @@ package com.example.fleshandbloodapppdm.ui.theme.theme.login
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.example.fleshandbloodapppdm.repositories.DeckRepository
 import com.example.fleshandbloodapppdm.repositories.LoginRepository
 import com.example.fleshandbloodapppdm.repositories.ResultWrapper
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class LoginState(
@@ -36,31 +34,84 @@ class LoginViewModel @Inject constructor(
         uiState.value = uiState.value.copy(password = password)
     }
 
-    fun login(onLoginSuccess : ()-> Unit) {
-        uiState.value = uiState.value.copy(isLoading = true)
+    fun login(onLoginSuccess : () -> Unit) {
+        uiState.value = uiState.value.copy(
+            isLoading = true,
+            error = null
+        )
 
-        if (uiState.value.username.isNullOrEmpty()) {
+        val username = uiState.value.username
+        val password = uiState.value.password
+
+        if (username.isNullOrEmpty()) {
             uiState.value = uiState.value.copy(
                 error = "Username is required",
                 isLoading = false
             )
+            return
         }
 
-        if (uiState.value.password.isNullOrEmpty()) {
+        if (password.isNullOrEmpty()) {
             uiState.value = uiState.value.copy(
                 error = "Password is required",
                 isLoading = false
             )
+            return
         }
-        // do login
 
-        loginRepository.login(
-            uiState.value.username!!,
-            uiState.value.password!!
-        ).onEach {result ->
-            when(result){
+        // do login
+        viewModelScope.launch {
+            FirebaseAuth.getInstance()
+                .signInWithEmailAndPassword(username, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        uiState.value = uiState.value.copy(
+                            error = null,
+                            isLoading = false
+                        )
+                        onLoginSuccess()
+                    } else {
+                        uiState.value = uiState.value.copy(
+                            error = task.exception?.message ?: "Login failed",
+                            isLoading = false
+                        )
+                    }
+                }
+        }
+    }
+
+    fun register(onRegisterSuccess: () -> Unit) {
+        uiState.value = uiState.value.copy(
+            isLoading = true,
+            error = null
+        )
+
+        val username = uiState.value.username
+        val password = uiState.value.password
+
+        if (username.isNullOrEmpty()) {
+            uiState.value = uiState.value.copy(
+                error = "Username is required",
+                isLoading = false
+            )
+            return
+        }
+
+        if (password.isNullOrEmpty()) {
+            uiState.value = uiState.value.copy(
+                error = "Password is required",
+                isLoading = false
+            )
+            return
+        }
+
+        loginRepository.register(
+            username,
+            password
+        ).onEach { result ->
+            when (result) {
                 is ResultWrapper.Success -> {
-                    onLoginSuccess()
+                    onRegisterSuccess()
                     uiState.value = uiState.value.copy(
                         error = null,
                         isLoading = false
@@ -79,8 +130,8 @@ class LoginViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
-
-
     }
+
+
 
 }

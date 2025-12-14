@@ -4,7 +4,6 @@ import com.example.fleshandbloodapppdm.models.Deck
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.snapshots
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -22,9 +21,9 @@ class DeckRepository @Inject constructor(
                 .whereArrayContains("owners", Firebase.auth.currentUser?.uid!!)
                 .snapshotFlow()
                 .collect {result ->
-                    var decks = mutableListOf<Deck>()
-                    for (document in result?.documents ?: emptyList()){
-                        var deck = document.toObject(Deck::class.java)
+                    val decks = mutableListOf<Deck>()
+                    for (document in result.documents){
+                        val deck = document.toObject(Deck::class.java)
                         deck?.docId = document.id
                         deck?.let{
                             decks.add(deck)
@@ -32,19 +31,49 @@ class DeckRepository @Inject constructor(
                     }
                     emit(ResultWrapper.Success(decks.toList()))
                 }
+
         }catch (e: Exception){
             emit(ResultWrapper.Error(e.message?:""))
         }
     }.flowOn(Dispatchers.IO)
-    fun addDeck(deck:Deck) : Flow<ResultWrapper<Unit>> = flow{
-        try{
+
+    fun addDeck(deck: Deck): Flow<ResultWrapper<Unit>> = flow {
+        try {
             emit(ResultWrapper.Loading())
-            db.collection("Decks")
-                .add(deck)
+
+            db.collection("decks")
+                .add(deck)  // <- top-level "decks" collection
                 .await()
+
             emit(ResultWrapper.Success(Unit))
-        }catch (e:Exception){
-            emit(ResultWrapper.Error(e.message?:""))
+        } catch (e: Exception) {
+            emit(ResultWrapper.Error(e.message ?: "Unknown error"))
         }
     }.flowOn(Dispatchers.IO)
+
+    fun updateDeckName(docId: String, newName: String) = flow {
+        emit(ResultWrapper.Loading())
+        try {
+            db
+                .collection("decks")
+                .document(docId)
+                .update("name", newName)
+            emit(ResultWrapper.Success(Unit))
+        } catch (e: Exception){
+            emit(ResultWrapper.Error(e.message?:""))
+        }
+    }
+
+    fun deleteDeck(docId: String) = flow {
+        emit(ResultWrapper.Loading())
+        try {
+            db.collection("decks")
+                .document(docId)
+                .delete()
+                .await() // needs kotlinx-coroutines-play-services
+            emit(ResultWrapper.Success(Unit))
+        } catch (e: Exception) {
+            emit(ResultWrapper.Error(e.message ?: "Failed to delete deck"))
+        }
+    }
 }

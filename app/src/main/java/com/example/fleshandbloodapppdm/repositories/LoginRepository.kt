@@ -1,10 +1,7 @@
 package com.example.fleshandbloodapppdm.repositories
 
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.fleshandbloodapppdm.models.Deck
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,6 +31,29 @@ class LoginRepository @Inject constructor(
             emit(ResultWrapper.Success(Unit))
         }catch (e:Exception) {
             emit(ResultWrapper.Error(e.message?:""))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    fun register(username: String, password: String): Flow<ResultWrapper<Unit>> = flow {
+        try {
+            emit(ResultWrapper.Loading())
+
+            val result = auth.createUserWithEmailAndPassword(
+                username,
+                password
+            ).await()
+
+            result.user?.email?.let {
+                // Guardar o email na coleção "users"
+                db.collection("users")
+                    .document(result.user!!.uid)
+                    .set(mapOf("email" to it))
+                    .await()
+            }
+
+            emit(ResultWrapper.Success(Unit))
+        } catch (e: Exception) {
+            emit(ResultWrapper.Error(e.message ?: "Ocorreu um erro ao registar"))
         }
     }.flowOn(Dispatchers.IO)
 }

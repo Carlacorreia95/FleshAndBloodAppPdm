@@ -25,7 +25,7 @@ public class CardViewModel : ViewModel() {
 
 
         db
-            .collection("deck")
+            .collection("decks")
             .document(deckId)
             .collection("cards")
             .addSnapshotListener { result, error ->
@@ -64,6 +64,16 @@ public class CardViewModel : ViewModel() {
             .document(docId)
             .update(mapOf("checked" to isChecked))
     }
+
+    fun deleteCard(docId: String) {
+        db
+            .collection("decks")
+            .document(deckId!!)
+            .collection("cards")
+            .document(docId)
+            .delete()
+    }
+
 
 
 }

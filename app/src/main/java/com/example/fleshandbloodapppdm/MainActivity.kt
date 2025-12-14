@@ -7,17 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fleshandbloodapppdm.ui.theme.theme.theme.FleshAndBloodAppPdmTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import androidx.compose.runtime.LaunchedEffect
 import com.example.fleshandbloodapppdm.ui.theme.theme.card.CardView
 import com.example.fleshandbloodapppdm.ui.theme.theme.cards.CardDetailView
 import com.example.fleshandbloodapppdm.ui.theme.theme.deck.DecksView
@@ -30,44 +26,53 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val navController = rememberNavController()
             FleshAndBloodAppPdmTheme {
+                val navController = rememberNavController()
+
+                // If already logged in, go directly to decks
+                val currentUser = Firebase.auth.currentUser
+                val startDestination = if (currentUser != null) "decks" else "login"
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "login",
+                        startDestination = startDestination,
                         modifier = Modifier.padding(innerPadding)
-                    ){
-                        composable("login"){
+                    ) {
+                        composable("login") {
                             LoginView(navController)
                         }
-                        composable("home"){
+                        composable("decks") {
                             DecksView(navController)
                         }
-                        composable("cards/{deckId}"){
-                            val deckId = it.arguments?.getString("deckId")
+                        composable("cards/{deckId}") { backStackEntry ->
+                            val deckId = backStackEntry.arguments?.getString("deckId")!!
                             CardView(
                                 navController = navController,
                                 modifier = Modifier,
-                                deckId = deckId!!
+                                deckId = deckId
                             )
                         }
-                        composable("cardDetail/{deckId}/{cardId}"){
-                            val deckId = it.arguments?.getString("deckId")
-                            val docId = it.arguments?.getString("cardID")
+                        composable("cardDetail/{deckId}") { backStackEntry ->
+                            val deckId = backStackEntry.arguments?.getString("deckId")!!
                             CardDetailView(
                                 navController = navController,
-                                docId = docId,
-                                deckId = deckId!!
+                                docId = null,
+                                deckId = deckId
                             )
                         }
+
+                        composable("cardDetail/{deckId}/{cardId}") { backStackEntry ->
+                            val deckId = backStackEntry.arguments?.getString("deckId")!!
+                            val cardId = backStackEntry.arguments?.getString("cardId")
+                            CardDetailView(
+                                navController = navController,
+                                docId = cardId,
+                                deckId = deckId
+                            )
+                        }
+
                     }
-                }
-            }
-            LaunchedEffect(Unit){
-                val currentUser = Firebase.auth.currentUser
-                if(currentUser != null){
-                    navController.navigate("home")
                 }
             }
         }

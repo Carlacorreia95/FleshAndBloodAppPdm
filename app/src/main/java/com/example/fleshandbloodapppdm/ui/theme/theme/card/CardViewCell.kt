@@ -15,13 +15,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fleshandbloodapppdm.models.Card
 import com.example.fleshandbloodapppdm.ui.theme.theme.theme.FleshAndBloodAppPdmTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
 @Composable
 fun CardViewCell(
     modifier: Modifier = Modifier,
     card: Card,
     onClick: () -> Unit,
-    onCheckedChange: (Boolean) -> Unit
+    onDelete: () -> Unit
 ) {
     Card ( modifier = modifier
         .fillMaxWidth()
@@ -42,12 +46,12 @@ fun CardViewCell(
                 card.qtd.toString(),
                 fontSize = 24.sp
             )
-            Checkbox(
-                checked = card.checked ?: false,
-                onCheckedChange = {
-                    onCheckedChange(it)
-                }
-            )
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Delete card"
+                )
+            }
         }
     }
 }
@@ -60,10 +64,9 @@ fun ProductViewCellPreview() {
             card = Card(
                 name = "Card 1",
                 qtd = 1.0,
-                checked = false
             ),
             onClick = {},
-            onCheckedChange = {}
+            onDelete = {}
         )
     }
 }

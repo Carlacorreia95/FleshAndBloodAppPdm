@@ -1,6 +1,5 @@
 package com.example.fleshandbloodapppdm.ui.theme.theme.login
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,19 +21,23 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fleshandbloodapppdm.R
 import com.example.fleshandbloodapppdm.ui.theme.theme.theme.FleshAndBloodAppPdmTheme
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+
 
 @Composable
 fun LoginView(
     navController: NavController,
-    modifier: Modifier = Modifier
-){
+) {
 
-    val viewModel : LoginViewModel = hiltViewModel()
+    val viewModel: LoginViewModel = hiltViewModel()
     val uiState = viewModel.uiState.value
 
-    Column(modifier = Modifier.fillMaxSize(),
+    Column(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally){
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Image(
             painter = painterResource(R.drawable.icon_fab),
             contentDescription = null,
@@ -44,38 +47,52 @@ fun LoginView(
         )
         TextField(
             modifier = Modifier.padding(8.dp),
-            value = uiState.username?:"",
-            onValueChange = {
-                viewModel.setUsername(it)
-            },
+            value = uiState.username ?: "",
+            onValueChange = { viewModel.setUsername(it) },
             label = { Text("Username") }
         )
         TextField(
             modifier = Modifier.padding(8.dp),
-            value = uiState.password?:"",
+            value = uiState.password ?: "",
             visualTransformation = PasswordVisualTransformation(),
-            onValueChange = {
-                viewModel.setPassword(it)
-            },
+            onValueChange = { viewModel.setPassword(it) },
             label = { Text("Password") }
         )
-        if(uiState.error != null) {
+        if (uiState.error != null) {
             Text(
-                uiState.error?:"",
+                uiState.error ?: "",
                 modifier = Modifier.padding(8.dp),
             )
         }
         Button(onClick = {
             viewModel.login(onLoginSuccess = {
-                navController.navigate("home")
+                navController.navigate("decks") {
+                    popUpTo("login") { inclusive = true }
+                }
             })
         }) {
-            Text("Login",
+            Text(
+                "Login",
                 modifier = Modifier.padding(8.dp)
             )
         }
-    }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            viewModel.register(onRegisterSuccess = {
+                navController.navigate("decks") {
+                    popUpTo("login") { inclusive = true }
+                }
+            })
+        }) {
+            Text(
+                "Register",
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+
+    }
 }
 
 @Preview(showBackground = true)

@@ -73,12 +73,10 @@ fun CardView(
                                 onClick = {
                                     navController.navigate("cardDetail/$deckId/${item.docId}")
                                 },
-                                onCheckedChange = {
-                                    viewModel.checkCard(
-                                        docId = item.docId!!,
-                                        isChecked = it
-                                    )
+                                onDelete = {
+                                    viewModel.deleteCard(item.docId!!)
                                 }
+
                             )
                         }
                     }
